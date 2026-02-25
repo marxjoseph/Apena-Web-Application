@@ -5,33 +5,46 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SpO2 Dashboard</title>
 
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body>
 
-    <h1>Sleep Data - SpO2</h1>
+    <header>
+        <h1>SpO2 Dashboard</h1>
+        <span class="subtitle">sleep monitoring · overnight session</span>
+    </header>
 
-    <canvas id="spo2Chart"></canvas>
+    <div class="stats">
+        <div class="stat">
+            <div class="stat-label">Average SpO2</div>
+            <div class="stat-value" id="stat-avg">—<span class="unit">%</span></div>
+        </div>
+        <div class="stat">
+            <div class="stat-label">Minimum</div>
+            <div class="stat-value" id="stat-min">—<span class="unit">%</span></div>
+        </div>
+        <div class="stat">
+            <div class="stat-label">Maximum</div>
+            <div class="stat-value" id="stat-max">—<span class="unit">%</span></div>
+        </div>
+        <div class="stat">
+            <div class="stat-label">Readings</div>
+            <div class="stat-value" id="stat-count">—</div>
+        </div>
+    </div>
 
-    <script>
-    fetch("/api/data")
-      .then(res => res.json())
-      .then(data => {
-        const labels = data.map(row => row.time);
-        const values = data.map(row => row.spo2);
+    <div class="chart-card">
+        <div class="chart-header">
+            <span class="chart-title">Blood Oxygen Saturation over Time</span>
+            <span class="badge">Valid readings only</span>
+        </div>
+        <canvas id="spo2Chart"></canvas>
+    </div>
 
-        new Chart(document.getElementById("spo2Chart"), {
-          type: 'line',
-          data: {
-            labels: labels,
-            datasets: [{
-              label: 'SpO2',
-              data: values
-            }]
-          }
-        });
-      });
-    </script>
+    <script src="{{ url_for('static', filename='js/spo2chart.js') }}"></script>
 
 </body>
 </html>
