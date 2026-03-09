@@ -1,4 +1,7 @@
-fetch("/api/data")
+let myChart = null;  
+
+function fetchPatientData(num) {
+  fetch(`/api/data?patient=${num}`)
   .then(res => res.json())
   .then(data => {
     const labels = data.map(row => row.time);
@@ -10,7 +13,10 @@ fetch("/api/data")
     document.getElementById('stat-max').innerHTML   = `${Math.max(...values)}<span class="unit">%</span>`;
     document.getElementById('stat-count').textContent = values.length.toLocaleString();
 
-    new Chart(document.getElementById("spo2Chart"), {
+    if (myChart) {
+      myChart.destroy();
+    }
+    myChart = new Chart(document.getElementById("spo2Chart"), {
       type: 'line',
       data: {
         labels: labels,
@@ -21,3 +27,20 @@ fetch("/api/data")
       }
     });
   });
+}
+
+patients = document.querySelectorAll(".patient-button");
+patients.forEach(patient => {
+  patient.addEventListener("click", e => {
+    console.log("here");
+    if (e.target.tagName === "BUTTON") {
+      fetchPatientData(e.target.dataset.patient);
+      patients.forEach(patientRemoveActive => {
+        patientRemoveActive.classList.remove("active");
+      });
+      e.target.classList.add("active");
+    }
+  });
+});
+
+fetchPatientData(1); // Default (test) Call

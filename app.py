@@ -1,4 +1,5 @@
 from flask import Flask, jsonify, render_template, request, session, redirect, url_for
+from datetime import datetime
 import csv
 import os
 
@@ -47,15 +48,17 @@ def home():
 @login_required
 def get_data():
     results = []
-    with open("TestData/TestData1.csv", newline='') as file:
+    with open(f'TestData/TestData{request.args.get("patient")}.csv', newline='') as file:
         reader = csv.DictReader(file)
+        #low = datetime.strptime("00:08:38.516", "%H:%M:%S.%f")
+        #high = datetime.strptime("00:09:46.658", "%H:%M:%S.%f")
         for row in reader:
-            if row["spo2_valid"] == "1":
+            if row["spo2_valid"] == "1": #and low <= datetime.strptime(row["time"], "%H:%M:%S.%f") <= high:
                 results.append({
-                    "time":   row["time"],
+                    "time":   row["time"], # 1 minute min 
                     "spo2":   int(row["spo2_pct"]),
                     "hr":     int(row["hr_bpm"]),
-                    "device": row["device"]
+                    #"device": row["device"]
                 })
     return jsonify(results)
 
