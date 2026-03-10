@@ -13,7 +13,7 @@
 <body>
 
     <header>
-        <h1>SpO2 Dashboard</h1>
+        <h1>SpO2 and BioZ Dashboard</h1>
         <span class="subtitle">sleep monitoring · overnight session</span>
     </header>
 
@@ -57,6 +57,41 @@
             <span class="badge">Valid readings only</span>
         </div>
         <canvas id="spo2Chart"></canvas>
+    </div>
+
+    <div class="stats">
+        <div class="stat">
+            <div class="stat-label">Average BioZ</div>
+            <div class="stat-value" id="stat-avg-bioz">—<span class="unit"></span></div>
+        </div>
+        <div class="stat">
+            <div class="stat-label">Minimum</div>
+            <div class="stat-value" id="stat-min-bioz">—<span class="unit"></span></div>
+        </div>
+        <div class="stat">
+            <div class="stat-label">Maximum</div>
+            <div class="stat-value" id="stat-max-bioz">—<span class="unit"></span></div>
+        </div>
+        <div class="stat">
+            <div class="stat-label">Readings</div>
+            <div class="stat-value" id="stat-count-bioz">—</div>
+        </div>
+    </div>
+
+    <div class="filter">
+        <label for="start-time-bioz">Start:</label>
+        <input type="number" name="start-time-bioz" id="start-time-bioz" step="0.001">
+        <label for="end-time-bioz">End:</label>
+        <input type="number" name="end-time-bioz" id="end-time-bioz" step="0.001">
+        <button type="button" id="filter-button-bioz">Filter</button>
+        <button type="button" id="filter-reset-bioz">Reset</button>
+    </div>
+
+    <div class="chart-card">
+        <div class="chart-header">
+            <span class="chart-title">BioZ over Time in Seconds</span>
+        </div>
+        <canvas id="biozChart"></canvas>
     </div>
 
     <script src="{{ url_for('static', filename='js/spo2chart.js') }}"></script>

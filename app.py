@@ -1,5 +1,4 @@
 from flask import Flask, jsonify, render_template, request, session, redirect, url_for
-from datetime import datetime
 import csv
 import os
 
@@ -44,24 +43,34 @@ def home():
     return render_template("index.html")
 
 
-@app.route("/api/data")
+@app.route("/api/data/spo2")
 @login_required
-def get_data():
+def get_data_spo2():
     results = []
-    with open(f'TestData/TestData{request.args.get("patient")}.csv', newline='') as file:
+    with open(f'TestData/TestDataSp{request.args.get("patient")}.csv', newline='') as file:
         reader = csv.DictReader(file)
-        #low = datetime.strptime("00:08:38.516", "%H:%M:%S.%f")
-        #high = datetime.strptime("00:09:46.658", "%H:%M:%S.%f")
         for row in reader:
-            if row["spo2_valid"] == "1": #and low <= datetime.strptime(row["time"], "%H:%M:%S.%f") <= high:
+            if row["spo2_valid"] == "1":
                 results.append({
-                    "time":   row["time"], # 1 minute min 
+                    "time":   row["time"],
                     "spo2":   int(row["spo2_pct"]),
                     "hr":     int(row["hr_bpm"]),
                     #"device": row["device"]
                 })
     return jsonify(results)
 
+@app.route("/api/data/bioz")
+@login_required
+def get_data_bio():
+    results = []
+    with open(f'TestData/TestDataBio{request.args.get("patient")}.csv', newline='') as file:
+        reader = csv.DictReader(file)
+        for row in reader:
+            results.append({
+                "time":   row["Time_Seconds"],
+                "bio":   float(row["Filtered_BioZ_Amplitude"])
+            })
+    return jsonify(results)
 
 if __name__ == "__main__":
     app.run(debug=True, port=5001)

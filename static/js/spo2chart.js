@@ -1,19 +1,32 @@
 let myChart = null;  
 let labels = null;
 let values = null;
+let myChartBio = null;  
+let bioLabels = null;
+let bioValues = null;
 const minPoints = 10;
 
-function fetchPatientData(num) {
-  fetch(`/api/data?patient=${num}`)
+function fetchPatientDataSpo2(num) {
+  fetch(`/api/data/spo2?patient=${num}`)
   .then(res => res.json())
   .then(data => {
     labels = data.map(row => row.time);
     values = data.map(row => row.spo2);
-    generateStatsAndChart(labels, values);
+    generateStatsAndChartSpo2(labels, values);
   });
 }
 
-function generateStatsAndChart(times, spo2) {
+function fetchPatientDataBioz(num) {
+  fetch(`/api/data/bioz?patient=${num}`)
+  .then(res => res.json())
+  .then(data => {
+    bioLabels = data.map(row => row.time);
+    bioValues = data.map(row => row.bio);
+    generateStatsAndChartBioz(bioLabels, bioValues);
+  });
+}
+
+function generateStatsAndChartSpo2(times, spo2) {
   const avg = Math.round(spo2.reduce((a, b) => a + b, 0) / spo2.length);
   document.getElementById('stat-avg').innerHTML   = `${avg}<span class="unit">%</span>`;
   document.getElementById('stat-min').innerHTML   = `${Math.min(...spo2)}<span class="unit">%</span>`;
@@ -35,12 +48,38 @@ function generateStatsAndChart(times, spo2) {
   });
 }
 
+function generateStatsAndChartBioz(times, bioz) {
+  const avg = (bioz.reduce((a, b) => a + b, 0) / bioz.length).toFixed(3);
+  document.getElementById('stat-avg-bioz').innerHTML   = `${avg}<span class="unit"></span>`;
+  document.getElementById('stat-min-bioz').innerHTML   = `${Math.min(...bioz).toFixed(3)}<span class="unit"></span>`;
+  document.getElementById('stat-max-bioz').innerHTML   = `${Math.max(...bioz).toFixed(3)}<span class="unit"></span>`;
+  document.getElementById('stat-count-bioz').textContent = bioz.length.toLocaleString();
+  if (myChartBio) {
+    myChartBio.destroy();
+  }
+  myChartBio = new Chart(document.getElementById("biozChart"), {
+    type: 'line',
+    data: {
+      labels: times,
+      datasets: [{
+        label: 'BioZ',
+        data: bioz
+      }]
+    }
+  });
+}
+
 patients = document.querySelectorAll(".patient-button");
 patients.forEach(patient => {
   patient.addEventListener("click", e => {
     console.log("here");
     if (e.target.tagName === "BUTTON") {
-      fetchPatientData(e.target.dataset.patient);
+      fetchPatientDataSpo2(e.target.dataset.patient);
+      document.getElementById("start-time").value = null;
+      document.getElementById("end-time").value = null;
+      fetchPatientDataBioz(e.target.dataset.patient);
+      document.getElementById("start-time-bioz").value = null;
+      document.getElementById("end-time-bioz").value = null;
       patients.forEach(patientRemoveActive => {
         patientRemoveActive.classList.remove("active");
       });
@@ -55,16 +94,14 @@ filter.addEventListener("click", () => {
   const end = document.getElementById("end-time").value;
   const times = [];
   const spo2 = [];
-  console.log(start, end);
   for (let i = 0; i < labels.length; i++) {
-    console.log(labels[i]);
     if (labels[i] > start && labels[i] < end) {
       times.push(labels[i]);
       spo2.push(values[i]);
     }
   }
   if(times.length >= minPoints) {
-    generateStatsAndChart(times, spo2);
+    generateStatsAndChartSpo2(times, spo2);
   }
   else {
     alert(`There needs to be at least 10 valid points in between the times chosen. There was only ${times.length} valid points.`);  
@@ -73,9 +110,37 @@ filter.addEventListener("click", () => {
 
 reset = document.getElementById("filter-reset") 
   reset.addEventListener("click", () => {
-    generateStatsAndChart(labels, values)
+    generateStatsAndChartSpo2(labels, values)
     document.getElementById("start-time").value = null;
     document.getElementById("end-time").value = null;
 });
 
-fetchPatientData(1); // Default (test) Call
+filterBio = document.getElementById("filter-button-bioz");
+filterBio.addEventListener("click", () => {
+  const start = document.getElementById("start-time-bioz").value;
+  const end = document.getElementById("end-time-bioz").value;
+  const times = [];
+  const bioz = [];
+  for (let i = 0; i < bioLabels.length; i++) {
+    if (parseFloat(bioLabels[i]) > start && parseFloat(bioLabels[i]) < end) {
+      times.push(bioLabels[i]);
+      bioz.push(bioValues[i]);
+    }
+  }
+  if(times.length >= minPoints) {
+    generateStatsAndChartBioz(times, bioz);
+  }
+  else {
+    alert(`There needs to be at least 10 valid points in between the times chosen. There was only ${times.length} valid points.`);  
+  }
+});
+
+resetBio = document.getElementById("filter-reset-bioz") 
+  resetBio.addEventListener("click", () => {
+    generateStatsAndChartBioz(bioLabels, bioValues)
+    document.getElementById("start-time-bioz").value = null;
+    document.getElementById("end-time-bioz").value = null;
+});
+
+fetchPatientDataSpo2(1); // Default (test) Call
+fetchPatientDataBioz(1); // Default (test) Call
