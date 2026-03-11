@@ -136,10 +136,18 @@ filterBio.addEventListener("click", () => {
 });
 
 resetBio = document.getElementById("filter-reset-bioz") 
-  resetBio.addEventListener("click", () => {
-    generateStatsAndChartBioz(bioLabels, bioValues)
-    document.getElementById("start-time-bioz").value = null;
-    document.getElementById("end-time-bioz").value = null;
+resetBio.addEventListener("click", () => {
+  generateStatsAndChartBioz(bioLabels, bioValues)
+  document.getElementById("start-time-bioz").value = null;
+  document.getElementById("end-time-bioz").value = null;
+});
+
+logout = document.getElementById("logout")
+logout.addEventListener("click", () => {
+  fetch("/logout")
+  .then(res => {
+    window.location.reload();
+  });
 });
 
 fetchPatientDataSpo2(1); // Default (test) Call
