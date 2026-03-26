@@ -1,12 +1,10 @@
-from flask import Flask, jsonify, render_template, request, session, redirect, url_for
+from flask import Flask, jsonify, render_template, request, session, redirect, url_for, flash
+import requests
 import csv
 import os
 
 app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY", "change-me-in-production")
-
-USERNAME = os.environ.get("APP_USERNAME", "admin")
-PASSWORD = os.environ.get("APP_PASSWORD", "password123")
 
 def login_required(f):
     from functools import wraps
@@ -22,12 +20,24 @@ def login_required(f):
 def login():
     error = None
     if request.method == "POST": 
-        if (request.form.get("username") == USERNAME and
-                request.form.get("password") == PASSWORD):
-            session["logged_in"] = True
-            session["username"] = request.form.get("username")
-            return redirect(url_for("home"))
-        error = "Invalid credentials."
+        username = request.form.get("username")
+        password = request.form.get("password")
+        try:
+            response = requests.post(
+                "https://firebase-api-6y5g.onrender.com/login/clinician",
+                json={"email": username, "password": password}
+            )
+            if response.status_code == 200:
+                session["logged_in"] = True
+                session["username"] = username
+                session["token"] = response.json()["token"]
+                session["clinician_id"] = response.json()["clinician_id"]
+                print(f"Success for login: {response.status_code}")
+                return redirect(url_for("home"))
+            else:
+                error = response.json()["error"]
+        except requests.exceptions.RequestException:
+            error = "Could not reach authentication server for login"
     return render_template("login.html", error=error)
 
 
@@ -40,7 +50,22 @@ def logout():
 @app.route("/")
 @login_required
 def home():
-    return render_template("index.html")
+    response = None
+    try:
+        response = requests.get(
+            "https://firebase-api-6y5g.onrender.com/patients/my-patients",
+            headers={'Authorization':f"Bearer {session["token"]}"},
+            json={"email": session["username"], "clinician_id": session["clinician_id"]}
+        )
+        if response.status_code == 200:
+            session["patients_data"] = response.json()
+            print(session["patients_data"])
+            print(f"Success for get patients: {response.status_code}")
+        else:
+            print(response.status_code)
+    except requests.exceptions.RequestException as e:
+        print(e)
+    return render_template("index.html", response=session["patients_data"])
 
 
 @app.route("/api/data/spo2")
@@ -72,5 +97,28 @@ def get_data_bio():
             })
     return jsonify(results)
 
+@app.route('/add_patient', methods=['POST'])
+@login_required
+def add_patient():
+    name = request.form.get('patient_name')
+    dob = request.form.get('patient_dob')
+
+    try:
+        response = requests.post(
+            "https://firebase-api-6y5g.onrender.com/register/patient",
+            headers={"Authorization": f"Bearer {session['token']}"},
+            json={"name": name, "date_of_birth": dob}
+        )
+        if response.status_code == 200:
+            print(f"Success for register patients: {response.status_code}")
+        else:
+            flash(f"Failed to register, Status Code: {response.status_code}", "error")
+            return redirect(url_for('home'))
+    except requests.exceptions.RequestException as e:
+        flash(f"Failed to register, Status Code: {response.status_code}", "error")
+        return redirect(url_for('home'))
+    
+    return redirect(url_for('home'))
+
 if __name__ == "__main__":
-    app.run(debug=True, port=5001)
+    app.run(debug=True, port=5002)
