@@ -10,8 +10,8 @@ function fetchPatientDataSpo2(num) {
   fetch(`/api/data/spo2?patient=${num}`)
   .then(res => res.json())
   .then(data => {
-    labels = data.map(row => row.time);
-    values = data.map(row => row.spo2);
+    labels = data.map(row => row.time.slice(11, 19));
+    values = data.map(row => row.spo2_pct);
     generateStatsAndChartSpo2(labels, values);
   });
 }
@@ -20,17 +20,18 @@ function fetchPatientDataBioz(num) {
   fetch(`/api/data/bioz?patient=${num}`)
   .then(res => res.json())
   .then(data => {
-    bioLabels = data.map(row => row.time);
-    bioValues = data.map(row => row.bio);
+    bioLabels = data.map(row => row.time.slice(11, 19));
+    bioValues = data.map(row => row.sample);
     generateStatsAndChartBioz(bioLabels, bioValues);
   });
 }
 
 function generateStatsAndChartSpo2(times, spo2) {
+  const safe = val => (isFinite(val) ? val : 'None');
   const avg = Math.round(spo2.reduce((a, b) => a + b, 0) / spo2.length);
-  document.getElementById('stat-avg').innerHTML   = `${avg}<span class="unit">%</span>`;
-  document.getElementById('stat-min').innerHTML   = `${Math.min(...spo2)}<span class="unit">%</span>`;
-  document.getElementById('stat-max').innerHTML   = `${Math.max(...spo2)}<span class="unit">%</span>`;
+  document.getElementById('stat-avg').innerHTML   = `${safe(avg)}<span class="unit">%</span>`;
+  document.getElementById('stat-min').innerHTML   = `${safe(Math.min(...spo2))}<span class="unit">%</span>`;
+  document.getElementById('stat-max').innerHTML   = `${safe(Math.max(...spo2))}<span class="unit">%</span>`;
   document.getElementById('stat-count').textContent = spo2.length.toLocaleString();
 
   if (myChart) {
@@ -49,10 +50,11 @@ function generateStatsAndChartSpo2(times, spo2) {
 }
 
 function generateStatsAndChartBioz(times, bioz) {
+  const safe = val => (isFinite(val) ? val : 'None');
   const avg = (bioz.reduce((a, b) => a + b, 0) / bioz.length).toFixed(3);
-  document.getElementById('stat-avg-bioz').innerHTML   = `${avg}<span class="unit"></span>`;
-  document.getElementById('stat-min-bioz').innerHTML   = `${Math.min(...bioz).toFixed(3)}<span class="unit"></span>`;
-  document.getElementById('stat-max-bioz').innerHTML   = `${Math.max(...bioz).toFixed(3)}<span class="unit"></span>`;
+  document.getElementById('stat-avg-bioz').innerHTML   = `${safe(avg)}<span class="unit"></span>`;
+  document.getElementById('stat-min-bioz').innerHTML   = `${safe(Math.min(...bioz).toFixed(3))}<span class="unit"></span>`;
+  document.getElementById('stat-max-bioz').innerHTML   = `${safe(Math.max(...bioz).toFixed(3))}<span class="unit"></span>`;
   document.getElementById('stat-count-bioz').textContent = bioz.length.toLocaleString();
   if (myChartBio) {
     myChartBio.destroy();
@@ -122,7 +124,7 @@ filterBio.addEventListener("click", () => {
   const times = [];
   const bioz = [];
   for (let i = 0; i < bioLabels.length; i++) {
-    if (parseFloat(bioLabels[i]) > start && parseFloat(bioLabels[i]) < end) {
+    if (bioLabels[i] > start && bioLabels[i] < end) {
       times.push(bioLabels[i]);
       bioz.push(bioValues[i]);
     }

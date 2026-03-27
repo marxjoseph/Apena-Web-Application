@@ -145,16 +145,16 @@
 
     <div class="filter">
         <label for="start-time-bioz">Start:</label>
-        <input type="number" name="start-time-bioz" id="start-time-bioz" step="0.001">
+        <input type="time" name="start-time-bioz" id="start-time-bioz" step="1">
         <label for="end-time-bioz">End:</label>
-        <input type="number" name="end-time-bioz" id="end-time-bioz" step="0.001">
+        <input type="time" name="end-time-bioz" id="end-time-bioz" step="1">
         <button type="button" id="filter-button-bioz">Filter</button>
         <button type="button" id="filter-reset-bioz">Reset</button>
     </div>
 
     <div class="chart-card">
         <div class="chart-header">
-            <span class="chart-title">BioZ over Time in Seconds</span>
+            <span class="chart-title">BioZ over Time</span>
         </div>
         <canvas id="biozChart"></canvas>
     </div>

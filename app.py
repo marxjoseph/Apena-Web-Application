@@ -1,10 +1,11 @@
 from flask import Flask, jsonify, render_template, request, session, redirect, url_for, flash
+from dotenv import load_dotenv
 import requests
-import csv
 import os
 
 app = Flask(__name__)
-app.secret_key = os.environ.get("SECRET_KEY", "change-me-in-production")
+load_dotenv()
+app.secret_key = os.environ.get("SECRET_KEY")
 
 def login_required(f):
     from functools import wraps
@@ -51,6 +52,7 @@ def logout():
 @login_required
 def home():
     response = None
+    session["patients_data"] = None
     try:
         response = requests.get(
             "https://firebase-api-6y5g.onrender.com/patients/my-patients",
@@ -71,31 +73,36 @@ def home():
 @app.route("/api/data/spo2")
 @login_required
 def get_data_spo2():
-    results = []
-    with open(f'TestData/TestDataSp{request.args.get("patient")}.csv', newline='') as file:
-        reader = csv.DictReader(file)
-        for row in reader:
-            if row["spo2_valid"] == "1":
-                results.append({
-                    "time":   row["time"],
-                    "spo2":   int(row["spo2_pct"]),
-                    "hr":     int(row["hr_bpm"]),
-                    #"device": row["device"]
-                })
-    return jsonify(results)
+    try:
+        response = requests.get(
+            f"https://data-retrieval-api.onrender.com/watch/{request.args.get('patient')}?timeframe=24h"
+        )
+        if response.status_code == 200:
+            session["patient_spo2"] = response.json()["records"]
+            print(session["patient_spo2"])
+            print(f"Success for get patient spo2: {response.status_code}")
+        else:
+            print(response.status_code)
+    except requests.exceptions.RequestException as e:
+        print(e)
+    return jsonify(session.get("patient_spo2", []))
 
 @app.route("/api/data/bioz")
 @login_required
 def get_data_bio():
-    results = []
-    with open(f'TestData/TestDataBio{request.args.get("patient")}.csv', newline='') as file:
-        reader = csv.DictReader(file)
-        for row in reader:
-            results.append({
-                "time":   row["Time_Seconds"],
-                "bio":   float(row["Filtered_BioZ_Amplitude"])
-            })
-    return jsonify(results)
+    try:
+        response = requests.get(
+            f"https://data-retrieval-api.onrender.com/patch/{request.args.get('patient')}?timeframe=24h"
+        )
+        if response.status_code == 200:
+            session["patient_bioz"] = response.json()["records"]
+            print(session["patient_bioz"])
+            print(f"Success for get patient bioz: {response.status_code}")
+        else:
+            print(response.status_code)
+    except requests.exceptions.RequestException as e:
+        print(e)
+    return jsonify(session.get("patient_bioz", []))
 
 @app.route('/add_patient', methods=['POST'])
 @login_required
@@ -137,7 +144,7 @@ def set_patient():
             flash(f"Failed to set patient, Status Code: {response.status_code}", "error")
     except requests.exceptions.RequestException as e:
         flash(f"Failed to set patient, Status Code: {response.status_code}", "error")
-
+        
     return redirect(url_for('home'))
 
 if __name__ == "__main__":
