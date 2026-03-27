@@ -26,7 +26,8 @@ def login():
         try:
             response = requests.post(
                 "https://firebase-api-6y5g.onrender.com/login/clinician",
-                json={"email": username, "password": password}
+                json={"email": username, "password": password},
+                timeout=60
             )
             if response.status_code == 200:
                 session["logged_in"] = True
@@ -57,7 +58,8 @@ def home():
         response = requests.get(
             "https://firebase-api-6y5g.onrender.com/patients/my-patients",
             headers={'Authorization':f"Bearer {session["token"]}"},
-            json={"email": session["username"], "clinician_id": session["clinician_id"]}
+            json={"email": session["username"], "clinician_id": session["clinician_id"]},
+            timeout=60
         )
         if response.status_code == 200:
             session["patients_data"] = response.json()
@@ -148,4 +150,4 @@ def set_patient():
     return redirect(url_for('home'))
 
 if __name__ == "__main__":
-    app.run()
+    app.run(debug=True, port=5002)
