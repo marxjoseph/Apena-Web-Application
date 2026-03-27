@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SpO2 Dashboard</title>
+    <title>SpO2 and BioZ Dashboard</title>
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
@@ -26,19 +26,24 @@
         {% endfor %}
     </nav>
 
-    <form action="/add_patient" method="POST">
-        <button type="button" onclick="document.getElementById('patient-modal').style.display='flex'" class="add-patient-btn">
-        + Add Patient
+    <div class="action-buttons">
+        <button type="button" onclick="document.getElementById('patient-modal').style.display='flex'" class="action-btn">
+            + Add Patient
         </button>
+        <button type="button" onclick="document.getElementById('set-patient-modal').style.display='flex'" class="action-btn">
+            Set Patient
+        </button>
+    </div>
 
-        {% with messages = get_flashed_messages(with_categories=true) %}
-        {% if messages %}
-            {% for category, message in messages %}
-            <div class="error-box {{ category }}">{{ message }}</div>
-            {% endfor %}
-        {% endif %}
-        {% endwith %}
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        {% for category, message in messages %}
+        <div class="error-box {{ category }}">{{ message }}</div>
+        {% endfor %}
+    {% endif %}
+    {% endwith %}
 
+    <form action="/add_patient" method="POST">
         <div id="patient-modal" class="modal-overlay">
         <div class="modal-content">
             <h3 class="modal-title">New Patient</h3>
@@ -54,6 +59,30 @@
             <div class="modal-actions">
             <button type="button" onclick="document.getElementById('patient-modal').style.display='none'" class="modal-btn-cancel">Cancel</button>
             <button type="submit" class="modal-btn-save">Save</button>
+            </div>
+        </div>
+        </div>
+    </form>
+
+    <form action="/set_patient" method="POST">
+        <div id="set-patient-modal" class="modal-overlay">
+        <div class="modal-content">
+            <h3 class="modal-title">Set Patient</h3>
+            
+            <label class="modal-label">Select Patient
+                <select name="patient_id" class="modal-input" required>
+                    <option value="" disabled selected>Select a patient</option>
+                    {% for patient in response['patients'] %}
+                    <option value="{{ patient['id'] }}">{{ patient['name'] }}</option>
+                    {% endfor %}
+                </select>
+            </label>
+            
+            <p class="modal-small-text">All incoming data is for that patient</p>
+            
+            <div class="modal-actions">
+            <button type="button" onclick="document.getElementById('set-patient-modal').style.display='none'" class="modal-btn-cancel">Cancel</button>
+            <button type="submit" class="modal-btn-save">Submit</button>
             </div>
         </div>
         </div>

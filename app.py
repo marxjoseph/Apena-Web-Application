@@ -102,7 +102,6 @@ def get_data_bio():
 def add_patient():
     name = request.form.get('patient_name')
     dob = request.form.get('patient_dob')
-
     try:
         response = requests.post(
             "https://firebase-api-6y5g.onrender.com/register/patient",
@@ -113,11 +112,32 @@ def add_patient():
             print(f"Success for register patients: {response.status_code}")
         else:
             flash(f"Failed to register, Status Code: {response.status_code}", "error")
-            return redirect(url_for('home'))
     except requests.exceptions.RequestException as e:
         flash(f"Failed to register, Status Code: {response.status_code}", "error")
-        return redirect(url_for('home'))
     
+    return redirect(url_for('home'))
+
+@app.route('/set_patient', methods=['POST'])
+@login_required
+def set_patient():
+    patient_name = ""
+    patient_id = request.form.get('patient_id')
+    for patient in session["patients_data"]["patients"]:
+        if patient["id"] == patient_id:
+            patient_name = patient["name"]
+    try:
+        response = requests.post(
+            "https://firebase-api-6y5g.onrender.com/device/set-patient",
+            headers={"Authorization": f"Bearer {session['token']}"},
+            json={"patient_id": patient_id}
+        )
+        if response.status_code == 200:
+            flash(f"Incoming data target updated to patient: {patient_name}", "success")
+        else:
+            flash(f"Failed to set patient, Status Code: {response.status_code}", "error")
+    except requests.exceptions.RequestException as e:
+        flash(f"Failed to set patient, Status Code: {response.status_code}", "error")
+        
     return redirect(url_for('home'))
 
 if __name__ == "__main__":
