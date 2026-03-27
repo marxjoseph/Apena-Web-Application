@@ -137,8 +137,8 @@ def set_patient():
             flash(f"Failed to set patient, Status Code: {response.status_code}", "error")
     except requests.exceptions.RequestException as e:
         flash(f"Failed to set patient, Status Code: {response.status_code}", "error")
-        
+
     return redirect(url_for('home'))
 
 if __name__ == "__main__":
-    app.run(debug=True, port=5002)
+    app.run()
