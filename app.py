@@ -20,6 +20,11 @@ def login_required(f):
 @app.route("/login", methods=["GET", "POST"])
 def login():
     error = None
+    if request.method == "GET":
+        try:
+            requests.get("https://firebase-api-6y5g.onrender.com/", timeout=60)
+        except:
+            pass
     if request.method == "POST": 
         username = request.form.get("username")
         password = request.form.get("password")
@@ -150,4 +155,4 @@ def set_patient():
     return redirect(url_for('home'))
 
 if __name__ == "__main__":
-    app.run(debug=True, port=5002)
+    app.run()
