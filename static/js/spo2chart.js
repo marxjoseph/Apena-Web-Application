@@ -152,5 +152,3 @@ logout.addEventListener("click", () => {
   });
 });
 
-fetchPatientDataSpo2(1); // Default (test) Call
-fetchPatientDataBioz(1); // Default (test) Call

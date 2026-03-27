@@ -20,7 +20,7 @@
 
     <nav class="patient-tabs">
         {% for patient in response['patients'] %}
-        <button class="patient-button {% if loop.first %}active{% endif %}" data-patient="{{ patient['id'] }}">
+        <button class="patient-button" data-patient="{{ patient['id'] }}">
             {{ patient['name'] }}
         </button>
         {% endfor %}
