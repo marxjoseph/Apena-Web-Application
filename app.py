@@ -20,19 +20,13 @@ def login_required(f):
 @app.route("/login", methods=["GET", "POST"])
 def login():
     error = None
-    if request.method == "GET":
-        try:
-            requests.get("https://firebase-api-6y5g.onrender.com/", timeout=60)
-        except:
-            pass
     if request.method == "POST": 
         username = request.form.get("username")
         password = request.form.get("password")
         try:
             response = requests.post(
                 "https://firebase-api-6y5g.onrender.com/login/clinician",
-                json={"email": username, "password": password},
-                timeout=60
+                json={"email": username, "password": password}
             )
             if response.status_code == 200:
                 session["logged_in"] = True
@@ -63,8 +57,7 @@ def home():
         response = requests.get(
             "https://firebase-api-6y5g.onrender.com/patients/my-patients",
             headers={'Authorization':f"Bearer {session["token"]}"},
-            json={"email": session["username"], "clinician_id": session["clinician_id"]},
-            timeout=60
+            json={"email": session["username"], "clinician_id": session["clinician_id"]}
         )
         if response.status_code == 200:
             session["patients_data"] = response.json()
